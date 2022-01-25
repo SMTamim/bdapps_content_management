@@ -1,0 +1,7 @@
+ui.py
+ui.pi
+addAcc.ui
+addApp.ui
+.idea/
+__pycache__/
+account.db
