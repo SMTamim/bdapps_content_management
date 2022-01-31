@@ -5,10 +5,25 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from addAcc import Ui_addAccountDialog
 from addApp import Ui_AddAnApp
 from deleteApp import UiRemoveAppDialog
+import resources
 
 database = DB()
 username_global = ''
 status_text_global = ''
+
+
+class FlashingText(QtWidgets.QLabel):
+    def __init__(self, *args, **kwargs):
+        super(FlashingText, self).__init__(*args, **kwargs)
+        effect = QtWidgets.QGraphicsColorizeEffect(self)
+        self.setGraphicsEffect(effect)
+        self.animation = QtCore.QPropertyAnimation(effect, b"color")
+
+        self.animation.setStartValue(QtGui.QColor(50, 50, 125))
+        self.animation.setEndValue(QtGui.QColor(255, 0, 0))
+
+        self.animation.setLoopCount(3)
+        self.animation.setDuration(400)
 
 
 class ComboBox(QtWidgets.QComboBox):
@@ -46,7 +61,7 @@ class MainWindow(object):
         self.gridLayoutWidget.setGeometry(QtCore.QRect(50, 250, 521, 191))
         self.gridLayoutWidget.setObjectName("gridLayoutWidget")
         self.buttonsLayout = QtWidgets.QVBoxLayout(self.gridLayoutWidget)
-        self.buttonsLayout.setContentsMargins(0, 0, 0, 0)
+        # self.buttonsLayout.setContentsMargins(0, 0, 0, 0)
         self.buttonsLayout.setObjectName("buttonsLayout")
 
         # INFO:Font Setup
@@ -57,13 +72,14 @@ class MainWindow(object):
         font.setBold(True)
         font.setWeight(75)
 
+        buttonsLayout_hBox = QtWidgets.QHBoxLayout()
         # INFO:Create Add New Account Button
 
         self.addNewAccount = QtWidgets.QPushButton(self.gridLayoutWidget)
         self.addNewAccount.clicked.connect(self.openAddAccount)
         self.addNewAccount.setFont(font)
         self.addNewAccount.setObjectName("addNewAccount")
-        self.buttonsLayout.addWidget(self.addNewAccount)
+        buttonsLayout_hBox.addWidget(self.addNewAccount)
 
         # INFO:Create Edit Current Account Button
 
@@ -71,15 +87,26 @@ class MainWindow(object):
         self.editCurrentAccount.setObjectName("editCurrentAccount")
         self.editCurrentAccount.setFont(font)
         self.editCurrentAccount.clicked.connect(self.DeleteCurrentAccountFunc)
-        self.buttonsLayout.addWidget(self.editCurrentAccount)
+        buttonsLayout_hBox.addWidget(self.editCurrentAccount)
 
+        self.buttonsLayout.addLayout(buttonsLayout_hBox)
+
+        buttonsLayout_hBox2 = QtWidgets.QHBoxLayout()
         # INFO:Create Get App List Button
 
         self.getAppListOfCurrentAccount = QtWidgets.QPushButton(self.gridLayoutWidget)
         self.getAppListOfCurrentAccount.setFont(font)
         self.getAppListOfCurrentAccount.setObjectName("getAppListOfCurrentAccount")
         self.getAppListOfCurrentAccount.clicked.connect(self.getAppListOfCurrentAccountFunc)
-        self.buttonsLayout.addWidget(self.getAppListOfCurrentAccount)
+        buttonsLayout_hBox2.addWidget(self.getAppListOfCurrentAccount)
+
+        # INFO:Create Open App List Button
+
+        self.openAppListOfCurrentAccount = QtWidgets.QPushButton(self.gridLayoutWidget)
+        self.openAppListOfCurrentAccount.setFont(font)
+        self.openAppListOfCurrentAccount.setObjectName("openAppListOfCurrentAccount")
+        self.openAppListOfCurrentAccount.clicked.connect(self.openAppListOfCurrentAccountFunc)
+        buttonsLayout_hBox2.addWidget(self.openAppListOfCurrentAccount)
 
         # INFO:Create Manually add an app button
 
@@ -87,7 +114,9 @@ class MainWindow(object):
         self.manuallyAddAnApp.setFont(font)
         self.manuallyAddAnApp.setObjectName("manuallyAddAnApp")
         self.manuallyAddAnApp.clicked.connect(self.manuallyAddAnAppFunc)
-        self.buttonsLayout.addWidget(self.manuallyAddAnApp)
+        buttonsLayout_hBox2.addWidget(self.manuallyAddAnApp)
+
+        self.buttonsLayout.addLayout(buttonsLayout_hBox2)
 
         # INFO: Adds the Remove an app button
 
@@ -112,7 +141,7 @@ class MainWindow(object):
 
         # INFO:Creates Welcome text of the top
 
-        self.statusLabel = QtWidgets.QLabel(self.central_widget)
+        self.statusLabel = FlashingText(self.central_widget)
         self.statusLabel.setGeometry(QtCore.QRect(80, 180, 461, 21))
         self.statusLabel.setFont(font)
         self.statusLabel.setStyleSheet("QLabel{color:red; font-size:15px;}")
@@ -232,8 +261,10 @@ class MainWindow(object):
             self.comboBox.addItem(account[0])
         if len(accounts) > 0:
             self.statusLabel.setText(f"Fetched {len(accounts)} account(s) successfully!")
+            self.username = self.comboBox.currentText()
         else:
             self.statusLabel.setText("No account to fetch!")
+            self.statusLabel.animation.start()
 
     # INFO:Method that fetches the password for selected account
     def select_account_name(self):
@@ -271,13 +302,15 @@ class MainWindow(object):
         currentAccount = self.comboBox.currentText()
         currentAccountIndex = self.comboBox.currentIndex()
 
-        if currentAccount == "Select an account":
-            self.statusLabel.setText('Selected account is not a valid account!')
+        if not self.isUserSelected():
+            return 0
         else:
             newWindow = QtWidgets.QWidget()
-            newWindow.setWindowIcon(QtGui.QIcon('icon.png'))
+            icon = QtGui.QIcon()
+            icon.addPixmap(QtGui.QPixmap(":/icons/delete.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+            newWindow.setWindowIcon(icon)
             newWindow.setGeometry(200, 200, 340, 200)
-            choice = QMessageBox.question(newWindow, 'Confirm Deletion', f"Want to delete '{currentAccount}'?",
+            choice = QMessageBox.question(newWindow, 'Confirm Deletion', f"Do you want to delete '{currentAccount}'?",
                                           QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel, QMessageBox.Cancel)
 
             if choice == QMessageBox.Yes:
@@ -289,12 +322,11 @@ class MainWindow(object):
 
     # INFO: Method to add the app in DB manually with selected account/username
     def addAppToAccount(self):
-        user_name = self.comboBox.currentText()
         app_name = self.ui_addApp.appNameLineEdit.text()
         print(app_name)
         if app_name == "":
             return "Invalid app name!"
-        result = database.insert_data('apps', [(app_name, user_name)])
+        result = database.insert_data('apps', [(app_name, self.username)])
         print(result)
         if result == 0:
             self.statusLabel.setText("App added successfully!")
@@ -313,11 +345,10 @@ class MainWindow(object):
 
     # Info: Method to remove app from account
     def removeTheAppReally(self):
-        user_name = self.comboBox.currentText()
         app_name = self.ui_removeApp.appComboBox.currentText()
-        result_ok = database.delete_data_from_apps(user_name, app_name)
+        result_ok = database.delete_data_from_apps(self.username, app_name)
         if result_ok:
-            self.statusLabel.setText(f'Successfully removed "{app_name}" form "{user_name}" account!')
+            self.statusLabel.setText(f'Successfully removed "{app_name}" form "{self.username}" account!')
         else:
             self.statusLabel.setText(f'Some problem occurred while removing "{app_name}"!')
         self.populate_removeAppDialog_comboBox()
@@ -325,10 +356,9 @@ class MainWindow(object):
     # Info: method to populate the combobox of the remove app dialog
     def populate_removeAppDialog_comboBox(self):
         self.ui_removeApp.appComboBox.clear()
-        user_name = self.comboBox.currentText()
-        apps = database.fetch_all_apps(user_name)
+        apps = database.fetch_all_apps(self.username)
         if len(apps) > 0:
-            self.statusLabel.setText(f"Total '{len(apps)}' apps found for '{user_name}'!")
+            self.statusLabel.setText(f"Total '{len(apps)}' apps found for '{self.username}'!")
             for app_ in apps:
                 self.ui_removeApp.appComboBox.addItem(app_[0])
 
@@ -341,15 +371,23 @@ class MainWindow(object):
 
     # INFO: Method to check if user is selected
     def isUserSelected(self):
-        user_name = self.comboBox.currentText()
-        if user_name.lower() == "Select an account".lower():
+        if self.username.lower() == "Select an account".lower() or self.username.lower() == '':
             self.statusLabel.setText("Select an account to proceed!")
+            self.statusLabel.animation.start()
             return False
         return True
 
     # INFO:Automatically get all the app list from selected account
     def getAppListOfCurrentAccountFunc(self):
-        self.statusLabel.setText("Getting app list of selected account!")
+        if self.isUserSelected():
+            self.statusLabel.setText(f"Getting app list of '{self.username}' account!")
+            self.statusLabel.animation.start()
+
+    # INFO: Open the app list from selected account
+    def openAppListOfCurrentAccountFunc(self):
+        if self.isUserSelected():
+            self.statusLabel.setText(f"Opening the app list for '{self.username}' account!")
+            self.statusLabel.animation.start()
 
     # INFO:Close window when Exit or ALT+F4 clicked
     def close_window(self):
@@ -359,6 +397,7 @@ class MainWindow(object):
     # INFO: Show about dialog on click of ALT+A or About
     def about_dialog(self):
         self.statusLabel.setText("Shown About of the app!")
+        self.statusLabel.animation.start()
         newWindow = QtWidgets.QWidget()
         newWindow.setWindowIcon(QtGui.QIcon('icon.png'))
         newWindow.setGeometry(200, 200, 340, 200)
@@ -369,11 +408,12 @@ class MainWindow(object):
         mainWindow.setWindowTitle(_translate("mainWindow", "BDApps Content Uploader"))
         self.addNewAccount.setText(_translate("mainWindow", "Add New Account"))
         self.editCurrentAccount.setText(_translate("mainWindow", "Delete Current Account"))
-        self.getAppListOfCurrentAccount.setText(_translate("mainWindow", "Get App List of Current Account"))
+        self.getAppListOfCurrentAccount.setText(_translate("mainWindow", "Get App List"))
+        self.openAppListOfCurrentAccount.setText(_translate("mainWindow", "Open App List"))
         self.manuallyAddAnApp.setText(_translate("mainWindow", "Manually Add An App"))
         self.removeAnApp.setText(_translate("mainWindow", "Remove App"))
         self.status.setText(_translate("mainWindow", "STATUS:"))
-        self.statusLabel.setText(_translate("mainWindow", "TextLabel"))
+        self.statusLabel.setText(_translate("mainWindow", ""))
         self.welcomeText.setText(_translate("mainWindow", "Welcome to BDApps Content Uploader"))
         self.selectAccount.setText(_translate("mainWindow", "Select an account:"))
         self.comboBox.setToolTip(_translate("mainWindow", "<html><head/><body><p><span style=\" font-size:10pt;\">Select the account for which you want to upload content.</span></p></body></html>"))
