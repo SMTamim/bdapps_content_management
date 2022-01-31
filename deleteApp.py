@@ -1,11 +1,11 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 
-class Ui_removeAppDialog(object):
-    def setupUi(self, removeAppDialog):
+class UiRemoveAppDialog(object):
+    def __init__(self, removeAppDialog):
         removeAppDialog.setObjectName("removeAppDialog")
         removeAppDialog.setWindowModality(QtCore.Qt.ApplicationModal)
-        removeAppDialog.resize(352, 251)
+        removeAppDialog.setFixedSize(352, 280)
         font = QtGui.QFont()
         font.setFamily("Ubuntu")
         font.setPointSize(14)
@@ -46,10 +46,10 @@ class Ui_removeAppDialog(object):
         self.pushButton.setObjectName("pushButton")
         self.verticalLayout_2.addWidget(self.pushButton)
 
-        self.retranslateUi(removeAppDialog)
+        self.translateUi(removeAppDialog)
         QtCore.QMetaObject.connectSlotsByName(removeAppDialog)
 
-    def retranslateUi(self, removeAppDialog):
+    def translateUi(self, removeAppDialog):
         _translate = QtCore.QCoreApplication.translate
         removeAppDialog.setWindowTitle(_translate("removeAppDialog", "Remove App"))
         self.label.setText(_translate("removeAppDialog", "Select an app to remove from account \'"))
@@ -62,8 +62,7 @@ import resources
 if __name__ == "__main__":
     import sys
     app = QtWidgets.QApplication(sys.argv)
-    removeAppDialog = QtWidgets.QDialog()
-    ui = Ui_removeAppDialog()
-    ui.setupUi(removeAppDialog)
-    removeAppDialog.show()
+    removeAppDialog_ = QtWidgets.QDialog()
+    ui = UiRemoveAppDialog(removeAppDialog_)
+    removeAppDialog_.show()
     sys.exit(app.exec_())

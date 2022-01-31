@@ -4,6 +4,7 @@ from db import DB
 from PyQt5 import QtCore, QtGui, QtWidgets
 from addAcc import Ui_addAccountDialog
 from addApp import Ui_AddAnApp
+from deleteApp import UiRemoveAppDialog
 
 database = DB()
 username_global = ''
@@ -88,6 +89,14 @@ class MainWindow(object):
         self.manuallyAddAnApp.clicked.connect(self.manuallyAddAnAppFunc)
         self.buttonsLayout.addWidget(self.manuallyAddAnApp)
 
+        # INFO: Adds the Remove an app button
+
+        self.removeAnApp = QtWidgets.QPushButton(self.gridLayoutWidget)
+        self.removeAnApp.setFont(font)
+        self.removeAnApp.setObjectName("removeAnApp")
+        self.removeAnApp.clicked.connect(self.removeAnAppFunc)
+        self.buttonsLayout.addWidget(self.removeAnApp)
+
         # INFO:Creates Status Text Label
 
         self.status = QtWidgets.QLabel(self.central_widget)
@@ -158,7 +167,7 @@ class MainWindow(object):
         # INFO:Connect the functions to retrieve data from DB
         self.comboBox.popupAboutToBeShown.connect(self.populateCombo)
         self.comboBox.currentTextChanged.connect(self.select_account_name)
-        # Add the combo box to layout
+        # Info: Add the combo box to layout
         self.selectAccountLayout.addWidget(self.comboBox)
 
         mainWindow.setCentralWidget(self.central_widget)
@@ -209,6 +218,11 @@ class MainWindow(object):
         self.ui_addApp = Ui_AddAnApp()
         self.ui_addApp.setupUi(self.addAppDialog)
         self.ui_addApp.addApp.clicked.connect(self.addAppToAccount)
+
+        # INFO: Adds the remove app window to main window
+        self.removeAppDialog = QtWidgets.QDialog()
+        self.ui_removeApp = UiRemoveAppDialog(self.removeAppDialog)
+        self.ui_removeApp.pushButton.clicked.connect(self.removeTheAppReally)
 
     # INFO:Method that retrieves all accounts from DB and place them in the combo box
     def populateCombo(self):
@@ -273,8 +287,7 @@ class MainWindow(object):
             else:
                 self.statusLabel.setText(f'Account "{currentAccount}" was not deleted!')
 
-    # INFO: Method to add an app manually
-    # INFO: Method to add the app in DB with selected account/username
+    # INFO: Method to add the app in DB manually with selected account/username
     def addAppToAccount(self):
         user_name = self.comboBox.currentText()
         app_name = self.ui_addApp.appNameLineEdit.text()
@@ -291,13 +304,48 @@ class MainWindow(object):
             self.statusLabel.setText("Some problem occurred while adding the app!")
         self.addAppDialog.close()
 
+    # INFO: Method to connect  manually add an app button to open the addApp window
     def manuallyAddAnAppFunc(self):
-        user_name = self.comboBox.currentText()
-        if user_name.lower() == "Select an account".lower():
-            self.statusLabel.setText("Select an account to add the app!")
+        if not self.isUserSelected():
             return 0
         self.ui_addApp.appNameLineEdit.setText('')
         self.addAppDialog.show()
+
+    # Info: Method to remove app from account
+    def removeTheAppReally(self):
+        user_name = self.comboBox.currentText()
+        app_name = self.ui_removeApp.appComboBox.currentText()
+        result_ok = database.delete_data_from_apps(user_name, app_name)
+        if result_ok:
+            self.statusLabel.setText(f'Successfully removed "{app_name}" form "{user_name}" account!')
+        else:
+            self.statusLabel.setText(f'Some problem occurred while removing "{app_name}"!')
+        self.populate_removeAppDialog_comboBox()
+
+    # Info: method to populate the combobox of the remove app dialog
+    def populate_removeAppDialog_comboBox(self):
+        self.ui_removeApp.appComboBox.clear()
+        user_name = self.comboBox.currentText()
+        apps = database.fetch_all_apps(user_name)
+        if len(apps) > 0:
+            self.statusLabel.setText(f"Total '{len(apps)}' apps found for '{user_name}'!")
+            for app_ in apps:
+                self.ui_removeApp.appComboBox.addItem(app_[0])
+
+    # INFO: Connect remove app button of main window to removeAppDialog
+    def removeAnAppFunc(self):
+        if not self.isUserSelected():
+            return 0
+        self.populate_removeAppDialog_comboBox()
+        self.removeAppDialog.show()
+
+    # INFO: Method to check if user is selected
+    def isUserSelected(self):
+        user_name = self.comboBox.currentText()
+        if user_name.lower() == "Select an account".lower():
+            self.statusLabel.setText("Select an account to proceed!")
+            return False
+        return True
 
     # INFO:Automatically get all the app list from selected account
     def getAppListOfCurrentAccountFunc(self):
@@ -322,7 +370,8 @@ class MainWindow(object):
         self.addNewAccount.setText(_translate("mainWindow", "Add New Account"))
         self.editCurrentAccount.setText(_translate("mainWindow", "Delete Current Account"))
         self.getAppListOfCurrentAccount.setText(_translate("mainWindow", "Get App List of Current Account"))
-        self.manuallyAddAnApp.setText(_translate("mainWindow", "Manually Add An App To This Account"))
+        self.manuallyAddAnApp.setText(_translate("mainWindow", "Manually Add An App"))
+        self.removeAnApp.setText(_translate("mainWindow", "Remove App"))
         self.status.setText(_translate("mainWindow", "STATUS:"))
         self.statusLabel.setText(_translate("mainWindow", "TextLabel"))
         self.welcomeText.setText(_translate("mainWindow", "Welcome to BDApps Content Uploader"))

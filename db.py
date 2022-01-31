@@ -60,12 +60,28 @@ class DB:
         self.cur.execute(query)
         return self.cur.fetchone()
 
+    def fetch_all_apps(self, account_name: str):
+        query = "SELECT * FROM apps WHERE username=" + '"' + account_name + '"'
+        self.cur.execute(query)
+        return self.cur.fetchall()
+
     def delete_data_from_accounts(self, username: str):
         query = 'DELETE FROM accounts WHERE username="' + username + '"'
         print(query)
         self.cur.execute(query)
         self.connection.commit()
         print('Account removed successfully!')
+
+    def delete_data_from_apps(self, username: str, app_name: str):
+        query = 'DELETE FROM apps WHERE username="' + username + '"' + 'AND app_name="' + app_name + '"'
+        try:
+            self.cur.execute(query)
+            self.connection.commit()
+            print('App removed successfully!')
+            return True
+        except Exception as e:
+            print("Some error occurred", e)
+            return False
 
     def close_connection(self):
         self.connection.close()
