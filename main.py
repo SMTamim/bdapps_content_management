@@ -33,20 +33,6 @@ class ComboBox(QtWidgets.QComboBox):
         self.popupAboutToBeShown.emit()
         super(ComboBox, self).showPopup()
 
-
-# class Window(QtWidgets.QWidget):
-#     def __init__(self):
-#         super(Window, self).__init__()
-#         self.combo = ComboBox(self)
-#         self.combo.popupAboutToBeShown.connect(self.populateCombo)
-#         layout = QtWidgets.QVBoxLayout(self)
-#         layout.addWidget(self.combo)
-#
-#     def populateCombo(self):
-#         if not self.combo.count():
-#             self.combo.addItems('One Two Three Four'.split())
-
-
 class MainWindow(object):
     def __init__(self, mainWindow):
         self.username = ''
