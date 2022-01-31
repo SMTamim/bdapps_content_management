@@ -3,6 +3,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 
 
 class Ui_addAccountDialog(object):
+
     def setupUi(self, addAccountDialog):
         addAccountDialog.setObjectName("addAccountDialog")
         addAccountDialog.setWindowModality(QtCore.Qt.ApplicationModal)
@@ -86,7 +87,7 @@ class Ui_addAccountDialog(object):
         self.pushButton.setToolTip(_translate("addAccountDialog", "Click this button to add this account to the app."))
         self.pushButton.setText(_translate("addAccountDialog", "Add this account"))
 
-    # Method to add new account in accounts.db.
+    # INFO: Method to add new account in accounts.db.
 
     def add_account_clicked(self):
         acc_name = self.accountNameLineEdit.text()
@@ -102,8 +103,8 @@ class Ui_addAccountDialog(object):
                 print(f"{acc_name} has been successfully added with given password!")
                 self.infoOfAccAdd.setText(f"Account '{acc_name}' successfully added.")
                 self.infoOfAccAdd.setStyleSheet('color:green')
-                self.accountNameLineEdit.setText("")
-                self.accountPasswordLineEdit.setText("")
+                # self.accountNameLineEdit.setText("")
+                # self.accountPasswordLineEdit.setText("")
                 return 0
             elif is_ok == 1:
                 self.infoOfAccAdd.setText("Duplicate Account Name")

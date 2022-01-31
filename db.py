@@ -18,14 +18,14 @@ class DB:
         self.cur.execute("""
             CREATE TABLE IF NOT EXISTS apps
                 (
-                    app_name text,
+                    app_name text PRIMARY KEY,
                     username text,
                     FOREIGN KEY(username) REFERENCES accounts(username)
                 )
         """)
         self.connection.commit()
 
-    def insert_data(self, table_name: str, list_data: list):
+    def insert_data(self, table_name: str, list_data: list):    # Info: list_data is a list of tuples
         values = ''
         for data in range(0, len(list_data[0])):
             values += "?"
@@ -34,7 +34,7 @@ class DB:
 
         str1 = f"{table_name} VALUES({values})"
         query = "INSERT INTO " + str1
-        # print(query)
+        # print(query, list_data)
 
         try:
             self.cur.executemany(query, list_data)

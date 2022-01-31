@@ -5,3 +5,4 @@ addApp.ui
 .idea/
 __pycache__/
 account.db
+deleteApp.ui

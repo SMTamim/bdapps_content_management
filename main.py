@@ -6,6 +6,8 @@ from addAcc import Ui_addAccountDialog
 from addApp import Ui_AddAnApp
 
 database = DB()
+username_global = ''
+status_text_global = ''
 
 
 class ComboBox(QtWidgets.QComboBox):
@@ -31,16 +33,15 @@ class ComboBox(QtWidgets.QComboBox):
 
 class MainWindow(object):
     def __init__(self, mainWindow):
-        self.AddAnApp = None
         self.username = ''
         self.pass_word = ''
         mainWindow.setObjectName("mainWindow")
         mainWindow.resize(612, 480)
         mainWindow.setFixedSize(612, 480)
         mainWindow.setWindowIcon(QtGui.QIcon('icon.png'))
-        self.centralwidget = QtWidgets.QWidget(mainWindow)
-        self.centralwidget.setObjectName("centralwidget")
-        self.gridLayoutWidget = QtWidgets.QWidget(self.centralwidget)
+        self.central_widget = QtWidgets.QWidget(mainWindow)
+        self.central_widget.setObjectName("central_widget")
+        self.gridLayoutWidget = QtWidgets.QWidget(self.central_widget)
         self.gridLayoutWidget.setGeometry(QtCore.QRect(50, 250, 521, 191))
         self.gridLayoutWidget.setObjectName("gridLayoutWidget")
         self.buttonsLayout = QtWidgets.QVBoxLayout(self.gridLayoutWidget)
@@ -89,7 +90,7 @@ class MainWindow(object):
 
         # INFO:Creates Status Text Label
 
-        self.status = QtWidgets.QLabel(self.centralwidget)
+        self.status = QtWidgets.QLabel(self.central_widget)
         self.status.setGeometry(QtCore.QRect(50, 140, 101, 31))
         self.status.setFont(font)
         self.status.setObjectName("status")
@@ -102,7 +103,7 @@ class MainWindow(object):
 
         # INFO:Creates Welcome text of the top
 
-        self.statusLabel = QtWidgets.QLabel(self.centralwidget)
+        self.statusLabel = QtWidgets.QLabel(self.central_widget)
         self.statusLabel.setGeometry(QtCore.QRect(80, 180, 461, 21))
         self.statusLabel.setFont(font)
         self.statusLabel.setStyleSheet("QLabel{color:red; font-size:15px;}")
@@ -114,12 +115,12 @@ class MainWindow(object):
         font.setFamily("Algerian")
         font.setPointSize(16)
 
-        self.welcomeText = QtWidgets.QLabel(self.centralwidget)
+        self.welcomeText = QtWidgets.QLabel(self.central_widget)
         self.welcomeText.setGeometry(QtCore.QRect(100, 20, 411, 24))
         self.welcomeText.setFont(font)
         self.welcomeText.setObjectName("welcomeText")
 
-        self.widget = QtWidgets.QWidget(self.centralwidget)
+        self.widget = QtWidgets.QWidget(self.central_widget)
         self.widget.setGeometry(QtCore.QRect(40, 70, 531, 40))
         self.widget.setObjectName("widget")
         self.selectAccountLayout = QtWidgets.QHBoxLayout(self.widget)
@@ -160,7 +161,7 @@ class MainWindow(object):
         # Add the combo box to layout
         self.selectAccountLayout.addWidget(self.comboBox)
 
-        mainWindow.setCentralWidget(self.centralwidget)
+        mainWindow.setCentralWidget(self.central_widget)
 
         # INFO:Creates the menu bar
 
@@ -194,7 +195,7 @@ class MainWindow(object):
 
         # INFO:Menu Bar ends
 
-        self.retranslateUi(mainWindow)
+        self.translate_Ui(mainWindow)
         QtCore.QMetaObject.connectSlotsByName(mainWindow)
 
         # INFO:Adds the add account window to main window
@@ -202,6 +203,12 @@ class MainWindow(object):
         self.addAccountDialog = QtWidgets.QDialog()
         self.ui = Ui_addAccountDialog()
         self.ui.setupUi(self.addAccountDialog)
+
+        # INFO: Adds the add app window to main window
+        self.addAppDialog = QtWidgets.QDialog()
+        self.ui_addApp = Ui_AddAnApp()
+        self.ui_addApp.setupUi(self.addAppDialog)
+        self.ui_addApp.addApp.clicked.connect(self.addAppToAccount)
 
     # INFO:Method that retrieves all accounts from DB and place them in the combo box
     def populateCombo(self):
@@ -216,7 +223,8 @@ class MainWindow(object):
 
     # INFO:Method that fetches the password for selected account
     def select_account_name(self):
-        accountInfo = database.fetch_account_password(self.comboBox.currentText())
+        self.username = self.comboBox.currentText()
+        accountInfo = database.fetch_account_password(self.username)
         if accountInfo is not None:
             self.username = accountInfo[0]
             self.pass_word = accountInfo[1]
@@ -233,7 +241,8 @@ class MainWindow(object):
             self.statusLabel.setText("Account added successfully!")
         elif result == -1:
             self.statusLabel.setText("Couldn't add duplicate account!")
-        self.addAccountDialog.close()
+        else:
+            self.statusLabel.setText("Some problem occurred while adding the account!")
 
     def openAddAccount(self):
         try:
@@ -265,11 +274,30 @@ class MainWindow(object):
                 self.statusLabel.setText(f'Account "{currentAccount}" was not deleted!')
 
     # INFO: Method to add an app manually
+    # INFO: Method to add the app in DB with selected account/username
+    def addAppToAccount(self):
+        user_name = self.comboBox.currentText()
+        app_name = self.ui_addApp.appNameLineEdit.text()
+        print(app_name)
+        if app_name == "":
+            return "Invalid app name!"
+        result = database.insert_data('apps', [(app_name, user_name)])
+        print(result)
+        if result == 0:
+            self.statusLabel.setText("App added successfully!")
+        elif result == 1:
+            self.statusLabel.setText("Duplicate app name found!")
+        else:
+            self.statusLabel.setText("Some problem occurred while adding the app!")
+        self.addAppDialog.close()
+
     def manuallyAddAnAppFunc(self):
-        self.AddAnApp = QtWidgets.QDialog()
-        self.ui = Ui_AddAnApp()
-        self.ui.setupUi(self.AddAnApp)
-        self.AddAnApp.show()
+        user_name = self.comboBox.currentText()
+        if user_name.lower() == "Select an account".lower():
+            self.statusLabel.setText("Select an account to add the app!")
+            return 0
+        self.ui_addApp.appNameLineEdit.setText('')
+        self.addAppDialog.show()
 
     # INFO:Automatically get all the app list from selected account
     def getAppListOfCurrentAccountFunc(self):
@@ -288,7 +316,7 @@ class MainWindow(object):
         newWindow.setGeometry(200, 200, 340, 200)
         QMessageBox.about(newWindow, "About bdapps content uploader ", "Version: 1.0\nDeveloper: SM Tamim Mahmud!")
 
-    def retranslateUi(self, mainWindow):
+    def translate_Ui(self, mainWindow):
         _translate = QtCore.QCoreApplication.translate
         mainWindow.setWindowTitle(_translate("mainWindow", "BDApps Content Uploader"))
         self.addNewAccount.setText(_translate("mainWindow", "Add New Account"))
@@ -315,5 +343,4 @@ if __name__ == "__main__":
     ui = MainWindow(mainWindow)
     mainWindow.show()
     sys.exit(app.exec_())
-
-
+    
