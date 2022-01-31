@@ -19,11 +19,11 @@ class FlashingText(QtWidgets.QLabel):
         self.setGraphicsEffect(effect)
         self.animation = QtCore.QPropertyAnimation(effect, b"color")
 
-        self.animation.setStartValue(QtGui.QColor(50, 50, 125))
+        self.animation.setStartValue(QtGui.QColor(0, 255, 255))
         self.animation.setEndValue(QtGui.QColor(255, 0, 0))
 
         self.animation.setLoopCount(3)
-        self.animation.setDuration(400)
+        self.animation.setDuration(333)
 
 
 class ComboBox(QtWidgets.QComboBox):
@@ -67,8 +67,8 @@ class MainWindow(object):
         # INFO:Font Setup
 
         font = QtGui.QFont()
-        font.setFamily("Myriad Pro Cond")
-        font.setPointSize(14)
+        font.setFamily("calibri")
+        font.setPointSize(11)
         font.setBold(True)
         font.setWeight(75)
 

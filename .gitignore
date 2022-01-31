@@ -6,3 +6,5 @@ addApp.ui
 __pycache__/
 account.db
 deleteApp.ui
+trhead_testing.py
+qthread_test.ui
