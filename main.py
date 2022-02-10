@@ -33,6 +33,7 @@ class ComboBox(QtWidgets.QComboBox):
         self.popupAboutToBeShown.emit()
         super(ComboBox, self).showPopup()
 
+
 class MainWindow(object):
     def __init__(self, mainWindow):
         self.username = ''

@@ -4,6 +4,13 @@ addAcc.ui
 addApp.ui
 .idea/
 __pycache__/
+bdapps/
+bdapps/__init__.py
+bdapps/configs.py
+bdapps/get_app_details.py
+bdapps/get_token.py
+bdapps/get_user_details.py
+bdapps.py
 account.db
 deleteApp.ui
 trhead_testing.py
