@@ -777,15 +777,29 @@ class MyWindow(QtWidgets.QMainWindow, MainWindow):
         self.setupUi(self)
 
 
-bg_path = os.path.join(os.path.abspath(os.getcwd()), "resources", "background.png")
-stylesheet = "MainWindow {background-image: url('" + bg_path + "');background-repeat: no-repeat; background-position: center;}QPushButton{padding:5px 3px;}"
-print(stylesheet)
+stylesheet = """
+    QWidget {
+        background-image:url(:/bg-image/background.png);
+        background-repeat: no-repeat;
+        background-position: center;
+    }
+    QLabel{
+        background-image:none;
+    }
+    QHBoxLayout{
+        background-image:none;
+    }
+    QVBoxLayout{
+        background-image:none;
+    }
+"""
 
 if __name__ == "__main__":
     import sys
 
     app = QtWidgets.QApplication(sys.argv)
-    app.setStyleSheet(stylesheet)
-    mainWindow = MyWindow()
+    # app.setStyleSheet(stylesheet)
+    mainWindow = QtWidgets.QMainWindow()
+    ui = MainWindow(mainWindow)
     mainWindow.show()
     sys.exit(app.exec_())

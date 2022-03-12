@@ -9,4 +9,7 @@
     <file>add.png</file>
     <file>remove.png</file>
   </qresource>
+  <qresource prefix="bg-image">
+    <file>background.png</file>
+  </qresource>
 </RCC>
