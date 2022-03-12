@@ -1,8 +1,14 @@
+import os
+import time
 
 from PyQt5 import QtCore, QtGui, QtWidgets
+from revenue_report import LoadingScreenThreadCredential
+from uploadContent import raiseException
 
 
 class Ui_addAccountDialog(object):
+    def __init__(self):
+        self.result = ''
 
     def setupUi(self, addAccountDialog):
         addAccountDialog.setObjectName("addAccountDialog")
@@ -27,6 +33,10 @@ class Ui_addAccountDialog(object):
         self.horizontalLayoutWidget_4.setObjectName("horizontalLayoutWidget_4")
         self.infoOfAccAddLayout = QtWidgets.QHBoxLayout(self.horizontalLayoutWidget_4)
         self.infoOfAccAddLayout.setObjectName("infoOfAccAddLayout")
+
+        icon = QtGui.QIcon()
+        icon.addPixmap(QtGui.QPixmap(":/icons/addAccount.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        addAccountDialog.setWindowIcon(icon)
 
         font = QtGui.QFont()
         font.setFamily("Lucida Calligraphy")
@@ -71,6 +81,7 @@ class Ui_addAccountDialog(object):
         self.pushButton.setContextMenuPolicy(QtCore.Qt.NoContextMenu)
         self.pushButton.setToolTipDuration(3)
         self.pushButton.setObjectName("pushButton")
+        self.pushButton.clicked.connect(self.add_account_clicked)
         self.verticalLayout.addWidget(self.pushButton)
 
         self.retranslateUi(addAccountDialog)
@@ -88,29 +99,77 @@ class Ui_addAccountDialog(object):
         self.pushButton.setText(_translate("addAccountDialog", "Add this account"))
 
     # INFO: Method to add new account in accounts.db.
-
     def add_account_clicked(self):
-        acc_name = self.accountNameLineEdit.text()
-        acc_pass = self.accountPasswordLineEdit.text()
+        self.acc_name = self.accountNameLineEdit.text().lower().strip()
+        self.acc_pass = self.accountPasswordLineEdit.text().strip()
         self.infoOfAccAdd.setStyleSheet('color:red')
 
-        if acc_pass != '' and acc_name != '':
-            list_data = [(acc_name, acc_pass)]
-            from main import database
+        if self.acc_pass != '' and self.acc_name != '':
+            self.new_dialog = QtWidgets.QDialog()
+            try:
+                font = QtGui.QFont()
+                font.setFamily("Calibri")
+                font.setPointSize(14)
 
-            is_ok = database.insert_data('accounts', list_data)
-            if is_ok == 0:
-                print(f"{acc_name} has been successfully added with given password!")
-                self.infoOfAccAdd.setText(f"Account '{acc_name}' successfully added.")
-                self.infoOfAccAdd.setStyleSheet('color:green')
-                # self.accountNameLineEdit.setText("")
-                # self.accountPasswordLineEdit.setText("")
-                return 0
-            elif is_ok == 1:
-                self.infoOfAccAdd.setText("Duplicate Account Name")
-                return -1
+                self.new_dialog.setWindowTitle("Checking Credential")
+                self.new_dialog.setWindowIcon(QtGui.QIcon('icon.png'))
+                self.new_dialog.setFixedSize(400, 250)
+                self.new_dialog.setWindowModality(QtCore.Qt.ApplicationModal)
+                self.new_dialog.setWindowFlag(QtCore.Qt.WindowStaysOnTopHint)
+                self.new_dialog.setFont(font)
+                self.new_dialog.animation = QtGui.QMovie(os.path.join(os.path.abspath(os.getcwd()), 'resources', 'loading.gif'))
+                self.new_dialog.title = QtWidgets.QLabel("Checking if credentials are valid!")
+                self.new_dialog.title.setAlignment(QtCore.Qt.AlignCenter)
+                self.new_dialog.label_loading = QtWidgets.QLabel(self.new_dialog)
+                self.new_dialog.label_loading.setStyleSheet("border: 0px;")
+                self.new_dialog.label_loading.setMovie(self.new_dialog.animation)
+                vBox = QtWidgets.QVBoxLayout()
+                vBox.addWidget(self.new_dialog.title)
+                hBox = QtWidgets.QHBoxLayout()
+                hBox.addWidget(self.new_dialog.label_loading)
+                vBox.addLayout(hBox)
+                self.new_dialog.setLayout(vBox)
+                self.new_dialog.animation.start()
+                self.thread = LoadingScreenThreadCredential(self.acc_name, self.acc_pass)
+                self.thread.start()
+                self.thread.stop_signal.connect(self.runFunction)
+                self.thread.check_signal.connect(self.check_credentials)
+            except Exception as e:
+                raiseException(e)
         else:
-            self.infoOfAccAdd.setText("Invalid account name or password!")
+            self.result = -1
+
+    def runFunction(self, stop_run):
+        if stop_run:
+            self.thread.stop()
+            self.new_dialog.animation.stop()
+            self.new_dialog.close()
+        else:
+            self.new_dialog.animation.start()
+            self.new_dialog.show()
+
+    def check_credentials(self, is_credential_ok):
+        if is_credential_ok:
+            list_data = [(self.acc_name, self.acc_pass)]
+            from main import database
+            print(list_data)
+            is_ok = database.insert_data('accounts', list_data)
+            self.result = is_ok
+            if is_ok == 0:
+                self.infoOfAccAdd.setText(f"Account successfully added.")
+                self.infoOfAccAdd.setStyleSheet('color:green')
+                self.accountNameLineEdit.setText('')
+                self.accountPasswordLineEdit.setText('')
+
+            elif is_ok == 1:
+                self.infoOfAccAdd.setText(f"Duplicate Account Name Found!.")
+                self.infoOfAccAdd.setStyleSheet('color:red')
+                self.accountNameLineEdit.setText('')
+                self.accountPasswordLineEdit.setText('')
+        else:
+            self.infoOfAccAdd.setText(f"Invalid Username or Password!.")
+            self.infoOfAccAdd.setStyleSheet('color:red')
+            self.accountPasswordLineEdit.setText('')
 
 
 if __name__ == "__main__":

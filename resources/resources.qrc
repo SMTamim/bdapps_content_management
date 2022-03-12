@@ -1,5 +1,12 @@
 <RCC>
   <qresource prefix="icons">
+    <file>addAccount.png</file>
+    <file>upload.png</file>
     <file>delete.png</file>
+    <file>report.png</file>
+    <file>list.png</file>
+    <file>download.png</file>
+    <file>add.png</file>
+    <file>remove.png</file>
   </qresource>
 </RCC>
