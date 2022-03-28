@@ -52,12 +52,13 @@ class ThreadClass(QtCore.QThread):
                         app_type = "Pro"
                     else:
                         app_type = 'Lite Videos'
-                    user_name = app['spName']
+                    user_name = app['spName'].lower()
                     app_link = ''
                     app = (app_name, app_type, app_link, user_name, '0', '0')
                     print(f"Inserting {app}")
                     result = database_.insert_data('apps', [app])
-                    print(result)
+                    if result:
+                        print("Skipping...")
                     progress += (90/len(apps))
                     for n in range(0, 10):
                         self.any_signal.emit(int(progress))
@@ -66,11 +67,11 @@ class ThreadClass(QtCore.QThread):
                     terminated += 1
                 self.isDone = True
 
-            does_all_app_has_link = user.get_content_add_link()
+            does_all_app_has_link = user.get_content_add_link(False)
 
             apps = database.fetch_all_apps(username_global)
             self.any_signal.emit(100)
-
+            print('does_all_app_has_link', does_all_app_has_link)
             if not does_all_app_has_link:
                 self.got_all_app_signal.emit(apps)
 
@@ -134,6 +135,16 @@ class LoadingWindow(QtWidgets.QWidget):
         self.progressBar = QtWidgets.QProgressBar()
         hBox.addWidget(self.progressBar)
         self.setLayout(hBox)
+
+    def closeEvent(self, event):
+        try:
+            print("Closing WD")
+            self.thread.stop()
+            os.chdir(self.workingDirectory)
+            event.accept()  # let the window close
+        except Exception as e:
+            print(e)
+
 
 
 class FlashingText(QtWidgets.QLabel):

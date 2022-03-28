@@ -103,7 +103,7 @@ class UploadWindow(QWidget):
             raiseException(e)
 
     # info: Close upload thread
-    def stop_upload_thread(self, stop_signal:bool):
+    def stop_upload_thread(self, stop_signal: bool):
         if stop_signal:
             self.uploadThread.stop()
             self.new_dialog.animation.stop()
@@ -366,7 +366,7 @@ class UploadWindow(QWidget):
                 time.sleep(2)
                 self.driver.get("https://user.bdapps.com/soltura/manage/myApplications.html")
 
-                WebDriverWait(self.driver, 10).until(
+                WebDriverWait(self.driver, 60).until(
                     ec.presence_of_all_elements_located((By.CLASS_NAME, "my_app_link"))
                 )
 
@@ -381,9 +381,10 @@ class UploadWindow(QWidget):
                     print("Closing Driver in get_content_add_link.")
                     self.driver.close()
                     time.sleep(2)
-                    return False
+                    return True
                 except Exception as e:
                     print(e)
+                    return False
             else:
                 print("here", all_app_has_link_in_db)
                 print("Links were already added.")
