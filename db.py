@@ -157,6 +157,10 @@ class DB:
             print(f"This '{e}' error occurred!")
 
     def update_app_detail(self, data: dict):
+        # Format of Data
+        # data = tuple(['app_name', 'balu'])
+        # data = {balu: data}
+
         self.make_connection()
         print(data)
         try:

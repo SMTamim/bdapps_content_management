@@ -303,6 +303,8 @@ class UploadWindow(QWidget):
                         self.driver.find_element(By.ID, 'send_msg').click()
                         print("Waiting 2 Seconds...")
                         time.sleep(2)
+                    else:
+                        print("Done")
                 except Exception as e:
                     raiseException(e)
 
@@ -376,7 +378,11 @@ class UploadWindow(QWidget):
                 try:
                     for i in range(0, len(links)):
                         links[i] = links[i].find_element(By.TAG_NAME, "a").get_attribute('href')
-                        print(names[i].get_attribute('innerText'), links[i])
+                        name, link = names[i].get_attribute('innerText'), links[i]
+                        print(name, link)
+                        if link[0:36] != 'https://user.bdapps.com/soltura/use/':
+                            database.update_app_detail({name: tuple(['type', 'Contact/Alert'])})
+                            continue
                         print(database.update_app_link((names[i].get_attribute('innerText'), links[i])))
                     print("Closing Driver in get_content_add_link.")
                     self.driver.close()

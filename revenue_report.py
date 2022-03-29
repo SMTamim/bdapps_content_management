@@ -110,7 +110,9 @@ class RevenueReport:
         print("Downloaded")
 
     def close_wd(self):
+        print("\nClosing WebDriver")
         self.driver.close()
+        print("WebDriver Closed\n")
         self.is_done = True
         self.is_driver_initialized = False
 
@@ -299,7 +301,7 @@ class MainApp(QtWidgets.QWidget):
 
     def closeEvent(self, event):
         try:
-            print("Closing WD")
+            print("Closing WD\n")
             self.thread.stop()
             os.chdir(self.workingDirectory)
             event.accept()  # let the window close

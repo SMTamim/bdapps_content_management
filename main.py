@@ -136,16 +136,6 @@ class LoadingWindow(QtWidgets.QWidget):
         hBox.addWidget(self.progressBar)
         self.setLayout(hBox)
 
-    def closeEvent(self, event):
-        try:
-            print("Closing WD")
-            self.thread.stop()
-            os.chdir(self.workingDirectory)
-            event.accept()  # let the window close
-        except Exception as e:
-            print(e)
-
-
 
 class FlashingText(QtWidgets.QLabel):
     def __init__(self, *args, **kwargs):
@@ -554,7 +544,7 @@ class MainWindow(object):
     #         self.statusLabel.setText(f'Successfully generated Excel for "{self.username}"!')
     #         self.statusLabel.animation.start()
     #     except Exception as e:
-    #         print(e)
+    #         raiseException(e)
     #
     # Info: Open Upload Window
     def uploadWindowFunc(self):
@@ -601,7 +591,7 @@ class MainWindow(object):
                 else:
                     self.loadingWindow.progressBar.setValue(cnt)
         except Exception as e:
-            print(e)
+            raiseException(e)
 
     # INFO:Automatically get all the app list from selected account
     def getAppListOfCurrentAccountFunc(self):
@@ -617,7 +607,7 @@ class MainWindow(object):
                 self.thread[1].got_all_app_signal.connect(self.refresh_app_table_method)
 
             except Exception as e:
-                print(e)
+                raiseException(e)
 
     # INFO: Open the app list from selected account
     def openAppListOfCurrentAccountFunc(self):
